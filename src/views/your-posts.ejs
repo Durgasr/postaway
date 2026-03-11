@@ -1,0 +1,146 @@
+<div class="container">
+  <div class="posts-container">
+    <h1>Postaway</h1>
+    <div id="posts">
+      <%if(postsData.length === 0 || postsData === null || postsData ===
+      undefined){%>
+      <p class="no-posts">No posts are posted by you</p>
+      <%}else{%> <% for(let post of postsData){ %>
+      <div class="post" data-postid="<%= post._id %>">
+        <h3><%= post.author %></h3>
+        <p><%= post.caption %></p>
+        <%if(post.mediaType.startsWith("image")){%>
+        <img src="<%= post.mediaContent %>" alt="post-image" />
+        <%}%> <%if(post.mediaType.startsWith("video")){%>
+        <video id="previewVideo" width="400" class="mb-3 d-none" controls>
+          <source
+            id="videoSource"
+            src="<%= post.mediaContent%>"
+            type="video/mp4"
+          />
+        </video>
+        <%}%>
+        <div class="d-flex justify-content-between">
+          <p>
+            <i
+              class="like-icon fa-solid fa-heart <%=post.isUserLiked ? 'red':'white'%>"
+            ></i>
+            <span class="like-count"><%= post.likes %></span>
+          </p>
+
+          <span class="icon-container">
+            <a
+              href="/api/post/update-post/<%=post.id%>/<%=userId%>"
+              title="Edit Post"
+              ><i class="fa-solid fa-pen-to-square"></i
+            ></a>
+            <a
+              href="/api/post/delete-post/<%=post.id%>/<%=userId%>"
+              title="Delete Post"
+              ><i class="fa-solid fa-trash"></i
+            ></a>
+            <a href="/api/post/archive/<%=post._id%>/<%=userId%>" title="Archive"
+              ><i class="fa-solid fa-box-archive"></i
+            ></a>
+          </span>
+        </div>
+        <input
+          type="text"
+          class="comment-input"
+          placeholder="Write a comment..."
+        />
+        <button type="button" class="comment-button">Comment</button>
+        <div class="d-flex flex-row">
+          <p class="total-comments">
+            Comments:
+            <span class="comment-count"><%= post.comments.length %></span>
+          </p>
+        </div>
+        <div class="comments-container">
+          <% for(let comment of post.comments){ %>
+          <p class="comment"><%= comment %></p>
+          <% } %>
+        </div>
+      </div>
+      <% } %> <%}%>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll(".like-icon").forEach((likeEl) => {
+    likeEl.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const likeCountEl = postElement.querySelector(".like-count");
+      const postId = postElement.getAttribute("data-postid");
+
+      fetch(`/api/like/updateLike/${postId}/<%=userId%>`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+          likeCountEl.textContent = data.likeCount;
+
+          if (event.target.classList.contains("red")) {
+            event.target.classList.remove("red");
+            event.target.classList.add("white");
+          } else {
+            event.target.classList.remove("white");
+            event.target.classList.add("red");
+          }
+        })
+        .catch((err) => console.error("Error:", err));
+    });
+  });
+
+  document.querySelectorAll(".comment-button").forEach((commentBtn) => {
+    commentBtn.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const postId = postElement.getAttribute("data-postid");
+      const commentInput = postElement.querySelector(".comment-input");
+      const commentText = commentInput.value.trim();
+
+      if (!commentText) {
+        alert("Comment cannot be empty");
+        return;
+      }
+
+      fetch(`/api/post/comment/${postId}`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: commentText,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const commentCountEl = postElement.querySelector(".comment-count");
+          commentCountEl.textContent = data.commentsCount;
+
+          const commentsContainer = postElement.querySelector(
+            ".comments-container"
+          );
+          const newCommentEl = document.createElement("p");
+          newCommentEl.className = "comment";
+          newCommentEl.textContent = commentText;
+          commentsContainer.appendChild(newCommentEl);
+
+          commentInput.value = "";
+        })
+        .catch((err) => console.error("Error:", err));
+    });
+  });
+
+  document.querySelectorAll(".total-comments").forEach((commentsEl) => {
+    commentsEl.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const commentsContainer = postElement.querySelector(
+        ".comments-container"
+      );
+
+      if (
+        commentsContainer.style.display === "none" ||
+        commentsContainer.style.display === ""
+      ) {
+        commentsContainer.style.display = "block";
+      } else {
+        commentsContainer.style.display = "none";
+      }
+    });
+  });
+</script>
