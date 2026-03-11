@@ -1,0 +1,105 @@
+<div>
+  <div class="post-container p-3 mx-auto w-50 form-box my-5 rounded-md">
+    <h2 style="color: #181642" class="text-center mb-3">Create Post</h2>
+    <form
+      id="createPostForm"
+      action="/api/post/create-post"
+      method="post"
+      class="p-2"
+      enctype="multipart/form-data"
+    >
+      <img
+        id="previewImage"
+        src=""
+        alt="post"
+        height="400"
+        width="400"
+        class="mb-3 d-none"
+      />
+
+      <video id="previewVideo" width="400" class="mb-3 d-none" controls>
+        <source id="videoSource" src="" type="video/mp4" />
+      </video>
+
+      <div class="mb-3">
+        <label for="post-image" class="form-label">upload File</label>
+        <input
+          type="file"
+          class="form-control"
+          id="post-image"
+          name="mediaContent"
+          accept="image/*,video/*"
+          required
+        />
+      </div>
+
+      <div class="mb-3 input-group">
+        <input
+          type="text"
+          name="caption"
+          class="form-control"
+          placeholder="Edit post content"
+          required
+        />
+      </div>
+      <div class="d-flex">
+        <button
+          type="button"
+          class="btn btn-md btn-primary mb-3 mt-2 me-2"
+          id="saveAsDraft"
+        >
+          Save as Draft
+        </button>
+        <button type="submit" class="btn btn-md btn-success mb-3 mt-2">
+          post
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById("post-image").addEventListener("change", previewFile);
+
+  function previewFile() {
+    const file = document.getElementById("post-image").files[0];
+    const imagePreview = document.getElementById("previewImage");
+    const videoPreview = document.getElementById("previewVideo");
+    const videoSource = document.getElementById("videoSource");
+
+    imagePreview.classList.add("d-none");
+    videoPreview.classList.add("d-none");
+
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        imagePreview.src = reader.result;
+        imagePreview.classList.remove("d-none");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    if (file && file.type.startsWith("video/")) {
+      const videoURL = URL.createObjectURL(file);
+      videoSource.src = videoURL;
+      videoPreview.classList.remove("d-none");
+      videoPreview.load();
+    }
+  }
+
+  document.getElementById("saveAsDraft").addEventListener("click", function () {
+    const formData = new FormData(document.getElementById("createPostForm"));
+
+    fetch("/api/post/save-draft/<%=userId%>", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response)
+      .then((data) => {
+        window.location.href = "/api/post/posts";
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  });
+</script>
