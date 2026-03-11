@@ -1,0 +1,121 @@
+<div class="post-container p-3 mx-auto w-50 form-box my-5 rounded-md">
+  <h3 style="color: #181642" class="text-center mb-3">Update Profile</h3>
+  <form
+    action="/api/user/edit-profile"
+    method="post"
+    class="p-2"
+    enctype="multipart/form-data"
+  >
+    <%if(userDetails != undefined || userDetails != null){%>
+    <div class="mb-3">
+      <div class="input-group flex-nowrap">
+        <span class="input-group-text">Name</span>
+        <input
+          type="text"
+          name="name"
+          class="form-control"
+          placeholder="enter your name"
+          aria-label="name"
+          required
+          value="<%= userDetails.name%>"
+        />
+      </div>
+    </div>
+    <div class="mb-3">
+      <div class="input-group flex-nowrap">
+        <span class="input-group-text">Email</span>
+        <input
+          type="email"
+          name="email"
+          class="form-control"
+          placeholder="enter your email"
+          aria-label="email"
+          value="<%= userDetails.email%>"
+          readonly
+          required
+        />
+      </div>
+    </div>
+    <div class="mb-2">
+      <img
+        id="previewImage"
+        src="<%= userDetails.avatar %>"
+        alt="Profile Image"
+        width="100"
+        height="100"
+        class="rounded"
+      />
+    </div>
+    <div class="mb-3">
+      <label for="avatar-image" class="form-label">Upload Image</label>
+      <input
+        type="file"
+        class="form-control"
+        id="avatar-image"
+        name="avatar"
+        accept="image/*"
+        onchange="previewFile()"
+      />
+    </div>
+    <div class="mb-3">
+      <span>Gender</span>
+      <br />
+      <input
+        type="radio"
+        name="gender"
+        placeholder="enter your password"
+        aria-label="gender"
+        value="Male"
+        id="male"
+        required
+      />
+
+      <label for="male" class="me-2">Male</label>
+      <input
+        type="radio"
+        name="gender"
+        placeholder="enter your password"
+        aria-label="gender"
+        value="Female"
+        id="female"
+        required
+      />
+      <label for="female" class="me-2">Female</label>
+      <input
+        type="radio"
+        name="gender"
+        placeholder="enter your password"
+        aria-label="gender"
+        value="Transgender"
+        id="transgender"
+        required
+      />
+      <label for="transgender">Transgender</label>
+    </div>
+    <%}%>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="/api/post/posts"
+      ><button type="button" class="btn btn-primary">cancel</button></a
+    >
+  </form>
+  <hr />
+</div>
+
+<script>
+  function previewFile() {
+    const file = document.getElementById("avatar-image").files[0];
+    const imagePreview = document.getElementById("previewImage");
+
+    imagePreview.classList.add("d-none");
+
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        imagePreview.src = reader.result;
+        imagePreview.classList.remove("d-none");
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+</script>
