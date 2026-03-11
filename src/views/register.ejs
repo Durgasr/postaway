@@ -1,0 +1,124 @@
+<div class="right">
+  <form
+    action="/api/user/signup"
+    method="post"
+    class="p-2"
+    enctype="multipart/form-data"
+  >
+    <div class="mb-3">
+      <div class="input-group flex-nowrap">
+        <span class="input-group-text">Name</span>
+        <input
+          type="text"
+          name="name"
+          class="form-control"
+          placeholder="enter your name"
+          aria-label="name"
+          required
+        />
+      </div>
+    </div>
+    <div class="mb-3">
+      <div class="input-group flex-nowrap">
+        <span class="input-group-text">Email</span>
+        <input
+          type="email"
+          name="email"
+          class="form-control"
+          placeholder="enter your email"
+          aria-label="email"
+          required
+        />
+      </div>
+    </div>
+    <div class="mb-3">
+      <div class="input-group flex-nowrap">
+        <span class="input-group-text">Password</span>
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          placeholder="enter your password"
+          aria-label="password"
+          required
+        />
+      </div>
+    </div>
+    <img
+      id="previewImage"
+      src=""
+      alt="post"
+      height="100"
+      width="100"
+      class="mb-3 d-none"
+      class="rounded"
+    />
+    <div class="mb-3">
+      <label for="avatar-image" class="form-label">Upload Image</label>
+      <input
+        type="file"
+        class="form-control"
+        id="avatar-image"
+        name="avatar"
+        accept="image/*"
+        onchange="previewFile()"
+      />
+    </div>
+    <div class="mb-3">
+      <span>Gender</span>
+      <br />
+      <input
+        type="radio"
+        name="gender"
+        placeholder="enter your password"
+        aria-label="gender"
+        value="Male"
+        id="male"
+        required
+      />
+
+      <label for="male" class="me-2">Male</label>
+      <input
+        type="radio"
+        name="gender"
+        placeholder="enter your password"
+        aria-label="gender"
+        value="Female"
+        id="female"
+        required
+      />
+      <label for="female" class="me-2">Female</label>
+      <input
+        type="radio"
+        name="gender"
+        placeholder="enter your password"
+        aria-label="gender"
+        value="Transgender"
+        id="transgender"
+        required
+      />
+      <label for="transgender">Transgender</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+  </form>
+  <hr />
+  <span>Already registered?</span> <a href="/api/user/signin">Login</a>
+</div>
+
+<script>
+  function previewFile() {
+    const file = document.getElementById("avatar-image").files[0];
+    const imagePreview = document.getElementById("previewImage");
+
+    imagePreview.classList.add("d-none");
+
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        imagePreview.src = reader.result;
+        imagePreview.classList.remove("d-none");
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+</script>
