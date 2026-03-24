@@ -1,0 +1,47 @@
+<div class="home-container">
+  <div class="left">
+    <h1>Welcome to Postaway</h1>
+    <h2 class="color-changing-text">
+      Create and interact securely posts, likes, comments, bookmarks and more!
+    </h2>
+  </div>
+  <div class="right">
+    <form action="/api/user/signin" method="post" class="p-2">
+      <div class="mb-3">
+        <div class="input-group flex-nowrap">
+          <span class="input-group-text">Email</span>
+          <input
+            type="email"
+            name="email"
+            class="form-control"
+            placeholder="enter your email"
+            aria-label="email"
+            required
+          />
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="input-group flex-nowrap">
+          <span class="input-group-text">Password</span>
+          <input
+            type="password"
+            name="password"
+            class="form-control"
+            placeholder="enter your password"
+            aria-label="password"
+            required
+          />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+
+      <a href="/api/user/reset-password"
+        ><button type="button" class="btn btn-secondary">
+          Reset Password
+        </button></a
+      >
+    </form>
+    <hr />
+    <span>Not registered yet? </span> <a href="/api/user/signup">Register</a>
+  </div>
+</div>
