@@ -1,0 +1,305 @@
+<div class="container">
+  <div class="posts-container">
+    <h1>Postaway</h1>
+
+    <%if(postsData === null || postsData.length === 0){%>
+    <p style="color: red; text-align: center">No posts are available</p>
+    <%}else{%>
+    <label for="sort-by" style="display: block; color: black">Sort By:</label>
+    <select id="sort-by">
+      <option></option>
+      <option value="engagement">Engagement</option>
+      <option value="date">Date</option>
+    </select>
+    <div id="posts">
+      <%if(message !== null){%>
+      <p style="color: green; text-align: center"><%=message%></p>
+      <%}%> <% for(let post of postsData){ %>
+      <div class="post" data-postid="<%= post._id %>">
+        <h3><%= post.author %></h3>
+        <p><%= post.caption %></p>
+        <% if (post.mediaType && post.mediaType.startsWith("image/") &&
+        post.mediaContent) { %>
+        <img src="<%= post.mediaContent %>" alt="post-image" />
+        <% } %> <% if (post.mediaType && post.mediaType.startsWith("video/") &&
+        post.mediaContent) { %>
+        <video id="previewVideo-<%= post.id %>" width="400" controls>
+          <source
+            id="videoSource-<%= post.id %>"
+            src="<%= post.mediaContent %>"
+            type="<%= post.mediaType %>"
+          />
+        </video>
+        <% } %>
+        <div class="d-flex justify-content-between">
+          <p>
+            <i
+              class="like-icon fa-solid fa-heart <%=post.likes.includes(userId) ? 'red':'white'%>"
+            ></i>
+            <span class="like-count"><%= post.likes.length %></span>
+          </p>
+          <p>
+            <i
+              class="bookmark-icon fa-solid fa-bookmark <%=post.bookmarks.includes(userId)? 'green':'white'%>"
+            ></i>
+          </p>
+        </div>
+        <input
+          type="text"
+          class="comment-input"
+          placeholder="Write a comment..."
+        />
+        <button type="button" class="comment-button">Comment</button>
+        <div class="d-flex flex-row">
+          <p class="total-comments">
+            Comments:
+            <span class="comment-count"><%= post.comments.length %></span>
+          </p>
+        </div>
+        <div class="comments-container">
+          <% for(let comment of post.comments){ %>
+          <div
+            data-commentid="<%=comment._id%>"
+            class="d-flex justify-content-between"
+          >
+            <div class="comment">
+              <span class="name"><%= comment.name %></span><br /><span
+                class="comment-text"
+                ><%= comment.content %></span
+              >
+            </div>
+            <%if(comment.user== userId){%>
+            <div>
+              <button class="edit-button" title="edit comment">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="submit-button" title="send comment">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+              <button class="delete-button" title="delete comment">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <%}%>
+          </div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+    </div>
+    <%}%>
+    <div class="pagination">
+      <% if (hasPrevPage) { %>
+      <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
+      <% } %>
+      <span>Page <%= currentPage %> of <%= totalPages %></span>
+      <% if (hasNextPage) { %>
+      <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll(".like-icon").forEach((likeEl) => {
+    likeEl.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const likeCountEl = postElement.querySelector(".like-count");
+      const postId = postElement.getAttribute("data-postid");
+      console.log(postId);
+      fetch(`/api/like/updateLike/${postId}/<%=userId%>`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+          likeCountEl.textContent = data.likeCount;
+
+          if (event.target.classList.contains("red")) {
+            event.target.classList.remove("red");
+            event.target.classList.add("white");
+          } else {
+            event.target.classList.remove("white");
+            event.target.classList.add("red");
+          }
+        })
+        .catch((err) => console.error("Error:", err));
+    });
+  });
+
+  document.querySelectorAll(".bookmark-icon").forEach((likeEl) => {
+    likeEl.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const likeCountEl = postElement.querySelector(".like-count");
+      const postId = postElement.getAttribute("data-postid");
+      if (event.target.classList.contains("green")) {
+        event.target.classList.remove("green");
+        event.target.classList.add("white");
+      } else {
+        event.target.classList.remove("white");
+        event.target.classList.add("green");
+      }
+      fetch(`/api/post/bookmark/${postId}/<%=userId%>`, {
+        method: "POST",
+      });
+    });
+  });
+  document.querySelectorAll(".comment-button").forEach((commentBtn) => {
+    commentBtn.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const postId = postElement.getAttribute("data-postid");
+      const commentInput = postElement.querySelector(".comment-input");
+      const commentText = commentInput.value.trim();
+
+      if (!commentText) {
+        alert("Comment cannot be empty");
+        return;
+      }
+
+      fetch(`/api/comment/add-comment/${postId}/<%=userId%>`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: commentText,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const commentCountEl = postElement.querySelector(".comment-count");
+          commentCountEl.textContent = data.commentsCount;
+
+          const commentsContainer = postElement.querySelector(
+            ".comments-container"
+          );
+          const commentWrapper = document.createElement("div");
+          commentWrapper.setAttribute("data-commentid", data.id);
+
+          commentWrapper.classList.add("d-flex", "justify-content-between");
+
+          const comments = document.createElement("div");
+          const nameEl = document.createElement("span");
+          nameEl.className = "name";
+          nameEl.textContent = "<%=userName%>";
+          comments.appendChild(nameEl);
+          const breakEl = document.createElement("br");
+          comments.appendChild(breakEl);
+          const commentTextEl = document.createElement("span");
+          commentTextEl.className = "comment-text";
+          commentTextEl.textContent = commentText;
+          comments.appendChild(commentTextEl);
+
+          const editOptions = document.createElement("div");
+          const editEl = document.createElement("button");
+          editEl.classList.add("edit-button");
+          const editIcon = document.createElement("i");
+          editIcon.classList.add("fa-solid", "fa-pen-to-square");
+          editEl.appendChild(editIcon);
+          editOptions.appendChild(editEl);
+
+          const sendEl = document.createElement("button");
+          sendEl.classList.add("submit-button");
+          const sendIcon = document.createElement("i");
+          sendIcon.classList.add("fa-solid", "fa-paper-plane");
+          sendEl.appendChild(sendIcon);
+          editOptions.appendChild(sendEl);
+
+          const deleteEl = document.createElement("button");
+          deleteEl.classList.add("delete-button");
+          const deleteIcon = document.createElement("i");
+          deleteIcon.classList.add("fa-solid", "fa-trash");
+          deleteEl.appendChild(deleteIcon);
+          editOptions.appendChild(deleteEl);
+
+          commentWrapper.appendChild(comments);
+          commentWrapper.appendChild(editOptions);
+          commentsContainer.appendChild(commentWrapper);
+
+          commentInput.value = "";
+        })
+        .catch((err) => console.error("Error:", err));
+    });
+  });
+
+  document
+    .querySelector(".posts-container")
+    .addEventListener("click", (event) => {
+      if (event.target.closest(".edit-button")) {
+        const commentElement = event.target.closest("[data-commentid]");
+        const commentInput = commentElement.querySelector(".comment-text");
+
+        console.log(commentElement);
+        commentInput.setAttribute("contenteditable", "true");
+        commentInput.focus();
+        commentInput.classList.add("comment-text-edit");
+      }
+
+      if (event.target.closest(".submit-button")) {
+        const commentElement = event.target.closest("[data-commentid]");
+        const commentInput = commentElement.querySelector(".comment-text");
+        const postId = commentElement
+          .closest(".post")
+          .getAttribute("data-postid");
+        const commentId = commentElement.getAttribute("data-commentid");
+        const commentText = commentInput.textContent.trim();
+
+        commentInput.setAttribute("contenteditable", "false");
+        commentInput.classList.remove("comment-text-edit");
+
+        if (!commentText) {
+          alert("Comment cannot be empty");
+          return;
+        }
+
+        fetch(`/api/comment/edit-comment/${postId}/${commentId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "text/plain" },
+          body: commentText,
+        })
+          .then((response) => response.json())
+          .then((data) => {})
+          .catch((err) => console.error("Error:", err));
+      }
+
+      if (event.target.closest(".delete-button")) {
+        const postElement = event.target.closest(".post");
+        const commentElement = event.target.closest("[data-commentid]");
+        const postId = commentElement
+          .closest(".post")
+          .getAttribute("data-postid");
+        const commentId = commentElement.getAttribute("data-commentid");
+
+        fetch(`/api/comment/delete-comment/${postId}/${commentId}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data) {
+              commentElement.remove();
+              const commentCountEl =
+                postElement.querySelector(".comment-count");
+              commentCountEl.textContent = data.commentsCount;
+            } else {
+              console.error("Failed to delete comment.");
+            }
+          })
+          .catch((err) => console.error("Error:", err));
+      }
+    });
+
+  document.querySelectorAll(".total-comments").forEach((commentsEl) => {
+    commentsEl.addEventListener("click", (event) => {
+      const postElement = event.target.closest(".post");
+      const commentsContainer = postElement.querySelector(
+        ".comments-container"
+      );
+
+      if (
+        commentsContainer.style.display === "none" ||
+        commentsContainer.style.display === ""
+      ) {
+        commentsContainer.style.display = "block";
+      } else {
+        commentsContainer.style.display = "none";
+      }
+    });
+  });
+
+  document.getElementById("sort-by").addEventListener("change", function () {
+    const selectedValue = this.value;
+    window.location.href = `/api/post/sort-posts/${selectedValue}`;
+  });
+</script>
